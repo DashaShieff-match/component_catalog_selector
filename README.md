@@ -69,7 +69,7 @@ If PowerShell blocks scripts on your machine, run:
 powershell -ExecutionPolicy Bypass -File .\build_exe.ps1
 ```
 
-There is a ready to run example of the executable and the STEP and STL catalogs if you would like to just run the selector exe
+There is a ready to run example of the executable and the STEP and STL catalogs if you would like to just run the selector executable
 
 Build dependency:
 
