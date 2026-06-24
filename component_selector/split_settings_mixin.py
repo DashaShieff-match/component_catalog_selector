@@ -11,7 +11,7 @@ class SplitSettingsMixin:
         row = 2 if self.confirmed_generalization_categories else 1
         self._build_split_context(parent)
 
-        ttk.Label(parent, text="Target test share").grid(row=row, column=0, sticky="w", padx=(0, 12))
+        ttk.Label(parent, text="Target validation share").grid(row=row, column=0, sticky="w", padx=(0, 12))
         test_percent_scale = ttk.Scale(
             parent,
             from_=1,
@@ -42,7 +42,7 @@ class SplitSettingsMixin:
             ttk.Label(
                 parent,
                 text=(
-                    "The split is still controllable, but hold-out values change which components are eligible "
+                    "The split is still controllable, but excluded values change which components are eligible "
                     "for each folder. The live preview shows the files that will actually be copied."
                 ),
                 foreground="#555555",
@@ -60,7 +60,7 @@ class SplitSettingsMixin:
 
         ttk.Label(
             parent,
-            text="No values are held out from training; the live preview shows the random split size.",
+            text="No values are excluded from development; the live preview shows the random split size.",
             foreground="#555555",
             wraplength=720,
         ).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 8))
@@ -84,6 +84,6 @@ class SplitSettingsMixin:
     def _build_clear_existing_control(self, parent: ttk.Frame, row: int) -> None:
         ttk.Checkbutton(
             parent,
-            text="Clear existing STEP files in output folders",
+            text="Clear existing STEP/STL files in output folders",
             variable=self.clear_existing_var,
         ).grid(row=row, column=0, columnspan=3, sticky="w", pady=(8, 0))

@@ -7,6 +7,7 @@ from tkinter import ttk
 from .catalog import CatalogScanner
 from .file_copier import ComponentFileCopier
 from .holdout_stage import HoldoutStageMixin
+from .models import CatalogScanResult
 from .output_mixin import OutputMixin
 from .split_planner import SplitPlanner
 from .split_settings_mixin import SplitSettingsMixin
@@ -26,12 +27,14 @@ class ComponentSelectorApp(
         super().__init__()
 
         self.project_root = project_root
-        self.catalog_dir = project_root / "FullCatalog"
-        self.catalog = CatalogScanner(self.catalog_dir).scan()
+        self.catalog_dir = project_root / "FullCatalogSTEP"
+        self.stl_catalog_dir = project_root / "FullCatalogSTL"
+        self.catalog = self._scan_catalog()
         self.split_planner = SplitPlanner()
-        self.file_copier = ComponentFileCopier(project_root)
+        self.file_copier = ComponentFileCopier(project_root, self.catalog_dir, self.stl_catalog_dir)
 
         self.category_vars: dict[str, dict[str, tk.BooleanVar]] = {}
+        self.data_type_vars: dict[str, tk.BooleanVar] = {}
         self.generalization_test_value_vars: dict[str, dict[str, tk.BooleanVar]] = {}
         self.confirmed_generalization_categories: set[str] = set()
         self.confirmed_generalization_test_values: dict[str, set[str]] = {}
@@ -45,7 +48,7 @@ class ComponentSelectorApp(
         self.clear_existing_var = tk.BooleanVar(value=True)
         self.output_text: tk.Text | None = None
 
-        self.title("Component Train/Test Selector")
+        self.title("Component Development/Validation Selector")
         self.geometry("940x760")
         self.minsize(760, 560)
 
@@ -60,3 +63,12 @@ class ComponentSelectorApp(
         for child in self.main_frame.winfo_children():
             child.destroy()
         self.output_text = None
+
+    def _scan_catalog(self) -> CatalogScanResult:
+        if not self.catalog_dir.exists():
+            return CatalogScanResult(
+                components=[],
+                ignored_non_step_files=[],
+                ignored_unparsed_step_files=[],
+            )
+        return CatalogScanner(self.catalog_dir).scan()

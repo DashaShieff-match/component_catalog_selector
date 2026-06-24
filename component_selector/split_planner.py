@@ -156,8 +156,8 @@ class SplitPlanner:
         if not train_candidates or not test_candidates:
             titles = ", ".join(CATEGORY_METADATA[category].title for category in sorted(holdout_values))
             raise ValueError(
-                "No non-empty train/test split could be created for the selected held-out values: "
-                f"{titles}. Leave at least one value available for training and testing."
+                "No non-empty development/validation split could be created for the selected excluded values: "
+                f"{titles}. Leave at least one value available for development and validation."
             )
 
         return train_candidates, test_candidates, choices
@@ -176,7 +176,7 @@ class SplitPlanner:
         }
         for category, values in values_by_category.items():
             if len(values) < 2:
-                raise ValueError(f"{CATEGORY_METADATA[category].title} has no held-out variation in this subset.")
+                raise ValueError(f"{CATEGORY_METADATA[category].title} has no exclusion variation in this subset.")
         return values_by_category
 
     def _create_holdout_choices(

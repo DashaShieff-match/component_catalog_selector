@@ -21,17 +21,27 @@ class HoldoutStageMixin:
         header.grid(row=0, column=0, sticky="ew", pady=(0, 12))
         header.grid_columnconfigure(0, weight=1)
 
-        ttk.Label(header, text="Stage 2: Hold out from training", font=("", 16, "bold")).grid(
+        ttk.Label(header, text="Stage 2: Exclude from development", font=("", 16, "bold")).grid(
             row=0,
             column=0,
             sticky="w",
         )
+        ttk.Label(header, text=f"Subset size: {len(self.selected_components)} component(s)").grid(
+            row=1,
+            column=0,
+            sticky="w",
+            pady=(4, 0),
+        )
         ttk.Label(
             header,
-            text=f"Subset size: {len(self.selected_components)} component(s). "
-            "Checked values are excluded from ComponentTrain.",
-        ).grid(row=1, column=0, sticky="w", pady=(4, 0))
-        ttk.Button(header, text="Back", command=self._build_subset_stage).grid(row=0, column=1, rowspan=2, sticky="e")
+            text=(
+                "Select categories to exclude from the development catalog only if you would like to validate "
+                "the system's generalisation to those excluded categories."
+            ),
+            foreground="#555555",
+            wraplength=760,
+        ).grid(row=2, column=0, sticky="w", pady=(4, 0))
+        ttk.Button(header, text="Back", command=self._build_subset_stage).grid(row=0, column=1, rowspan=3, sticky="e")
 
         options_frame = ttk.Frame(self.main_frame)
         options_frame.grid(row=1, column=0, sticky="ew", pady=(0, 12))
@@ -54,7 +64,7 @@ class HoldoutStageMixin:
         footer = ttk.Frame(self.main_frame)
         footer.grid(row=2, column=0, sticky="ew", pady=(12, 0))
         footer.grid_columnconfigure(0, weight=1)
-        ttk.Button(footer, text="Confirm hold-out selection", command=self._confirm_generalization_config).grid(
+        ttk.Button(footer, text="Confirm exclusions", command=self._confirm_generalization_config).grid(
             row=0,
             column=1,
             sticky="e",
@@ -68,13 +78,13 @@ class HoldoutStageMixin:
             labels = [f"{code} - {CATEGORY_METADATA[category].label_for(code)}" for code in sorted_values]
             ttk.Label(
                 frame,
-                text="No hold-out variation available: " + ", ".join(labels),
+                text="No exclusion variation available: " + ", ".join(labels),
                 foreground="#555555",
                 wraplength=380,
             ).grid(row=0, column=0, sticky="w", pady=(6, 0))
             return
 
-        ttk.Label(frame, text="Hold out from ComponentTrain:", foreground="#555555").grid(
+        ttk.Label(frame, text="Exclude from development catalog:", foreground="#555555").grid(
             row=0,
             column=0,
             sticky="w",
@@ -103,8 +113,8 @@ class HoldoutStageMixin:
 
             if selected_values == available_values:
                 messagebox.showerror(
-                    "No train type left",
-                    f"Leave at least one {category_title} value unchecked so it can remain in ComponentTrain.",
+                    "No development type left",
+                    f"Leave at least one {category_title} value unchecked so it can remain in the development folder.",
                 )
                 return None
 

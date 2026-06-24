@@ -27,7 +27,7 @@ class SplitStageMixin:
 
         if not self.selected_components:
             self.target_test_percent_label_var.set("0%")
-            self.actual_split_preview_var.set("Will copy: 0 train / 0 test")
+            self.actual_split_preview_var.set("Will copy: 0 development / 0 validation")
             return
 
         self.target_test_percent_label_var.set(f"{percent}%")
@@ -43,14 +43,14 @@ class SplitStageMixin:
         except ValueError as error:
             return f"Preview unavailable: {error}"
 
-        text = f"Will copy: {preview.train_count} train / {preview.test_count} test"
+        text = f"Will copy: {preview.train_count} development / {preview.test_count} validation"
         if preview.unused_count:
-            text += f" / {preview.unused_count} unused due to hold-out constraints"
+            text += f" / {preview.unused_count} unused due to exclusion constraints"
 
         if preview.holdout_active:
             text += (
-                f" (eligible: {preview.train_candidate_count} train candidates, "
-                f"{preview.test_candidate_count} test candidates)"
+                f" (eligible: {preview.train_candidate_count} development candidates, "
+                f"{preview.test_candidate_count} validation candidates)"
             )
         return text
 
@@ -74,10 +74,19 @@ class SplitStageMixin:
             sticky="w",
             pady=(4, 0),
         )
+        ttk.Label(
+            header,
+            text=(
+                "Excluding categories from development can alter the overall number of components in "
+                "DevelopmentSet and ValidationSet."
+            ),
+            foreground="#555555",
+            wraplength=760,
+        ).grid(row=2, column=0, sticky="w", pady=(4, 0))
         ttk.Button(header, text="Back", command=self._build_generalization_stage).grid(
             row=0,
             column=1,
-            rowspan=2,
+            rowspan=3,
             sticky="e",
         )
 
@@ -109,7 +118,7 @@ class SplitStageMixin:
         button_bar = ttk.Frame(self.main_frame)
         button_bar.grid(row=row, column=0, sticky="ew", pady=(12, 0))
         button_bar.grid_columnconfigure(0, weight=1)
-        ttk.Button(button_bar, text="Create train/test folders", command=self._create_train_test_split).grid(
+        ttk.Button(button_bar, text="Create development/validation folders", command=self._create_train_test_split).grid(
             row=0,
             column=1,
             sticky="e",
@@ -124,14 +133,16 @@ class SplitStageMixin:
             holdout_values=self.confirmed_generalization_test_values,
             target_test_count=self._selected_target_test_count(),
             random_seed=random_seed,
-            clear_existing_step_files=self.clear_existing_var.get(),
+            clear_existing_files=self.clear_existing_var.get(),
+            selected_data_types=self._selected_data_types(),
         )
 
         try:
             split_result = self.split_planner.create_split(self.selected_components, config)
             copy_result = self.file_copier.copy_split(
                 split_result=split_result,
-                clear_existing_step_files=config.clear_existing_step_files,
+                clear_existing_files=config.clear_existing_files,
+                selected_data_types=config.selected_data_types,
             )
         except OSError as error:
             messagebox.showerror("File copy failed", str(error))
@@ -143,7 +154,10 @@ class SplitStageMixin:
         self._write_split_result(split_result, copy_result)
         messagebox.showinfo(
             "Split complete",
-            f"Copied {copy_result.train_count} train and {copy_result.test_count} test STEP file(s).",
+            (
+                f"Copied {copy_result.train_file_count} development and "
+                f"{copy_result.test_file_count} validation file(s)."
+            ),
         )
 
     def _parse_random_seed(self) -> int | None | bool:

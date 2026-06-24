@@ -9,9 +9,9 @@ from .models import Component, CopyResult, GeneralizationChoice, SplitResult
 class OutputMixin:
     def _generalization_selection_summary_lines(self) -> list[str]:
         if not self.confirmed_generalization_categories:
-            return ["Held out from ComponentTrain: none; the selected subset will be randomly split."]
+            return ["Excluded from development catalog: none; the selected subset will be randomly split."]
 
-        lines = ["Confirmed values held out from ComponentTrain:"]
+        lines = ["Confirmed values excluded from development catalog:"]
         for category in CATEGORY_ORDER:
             if category not in self.confirmed_generalization_categories:
                 continue
@@ -28,10 +28,11 @@ class OutputMixin:
             "Selection complete",
             "",
             self._random_seed_summary(split_result),
-            f"Target test share: {self._selected_target_test_percent()}%",
+            f"Target validation share: {self._selected_target_test_percent()}%",
             self._actual_split_summary(split_result),
-            f"ComponentTrain folder: {copy_result.train_dir}",
-            f"ComponentTest folder:  {copy_result.test_dir}",
+            f"Copied data type(s): {self._copied_data_type_summary(copy_result)}",
+            f"DevelopmentSet folder: {copy_result.train_dir}",
+            f"ValidationSet folder:  {copy_result.test_dir}",
             "",
         ]
 
@@ -39,10 +40,10 @@ class OutputMixin:
         lines.extend(
             [
                 "",
-                f"ComponentTrain ({len(split_result.train_components)} component(s)):",
+                f"Development ({len(split_result.train_components)} component(s)):",
                 *self._component_lines(split_result.train_components),
                 "",
-                f"ComponentTest ({len(split_result.test_components)} component(s)):",
+                f"Validation ({len(split_result.test_components)} component(s)):",
                 *self._component_lines(split_result.test_components),
                 "",
             ]
@@ -64,20 +65,20 @@ class OutputMixin:
         choices: dict[str, GeneralizationChoice],
     ) -> list[str]:
         if not choices:
-            return ["Held out from ComponentTrain: none; random split was used."]
+            return ["Excluded from development catalog: none; random split was used."]
 
-        lines = ["Hold-out choices:"]
+        lines = ["Exclusion choices:"]
         for category in CATEGORY_ORDER:
             if category not in choices:
-                lines.append(f"- {CATEGORY_METADATA[category].title}: not held out")
+                lines.append(f"- {CATEGORY_METADATA[category].title}: not excluded")
                 continue
 
             choice = choices[category]
             train_values = self._format_category_values(category, choice.train_values)
             test_values = self._format_category_values(category, choice.test_values)
             lines.append(
-                f"- {CATEGORY_METADATA[category].title}: train uses {train_values}; "
-                f"held out from train {test_values}"
+                f"- {CATEGORY_METADATA[category].title}: development uses {train_values}; "
+                f"excluded from development {test_values}"
             )
         return lines
 
@@ -86,12 +87,19 @@ class OutputMixin:
 
     def _actual_split_summary(self, split_result: SplitResult) -> str:
         summary = (
-            f"Actual copied split: {len(split_result.train_components)} train / "
-            f"{len(split_result.test_components)} test"
+            f"Actual copied split: {len(split_result.train_components)} development / "
+            f"{len(split_result.test_components)} validation"
         )
         if split_result.unused_components:
-            summary += f" / {len(split_result.unused_components)} unused due to hold-out constraints"
+            summary += f" / {len(split_result.unused_components)} unused due to exclusion constraints"
         return summary
+
+    def _copied_data_type_summary(self, copy_result: CopyResult) -> str:
+        data_types = ", ".join(data_type.upper() for data_type in sorted(copy_result.selected_data_types))
+        return (
+            f"{data_types} ({copy_result.train_file_count} development files / "
+            f"{copy_result.test_file_count} validation files)"
+        )
 
     def _format_category_values(self, category: str, values: Iterable[str]) -> str:
         sorted_values = sorted(values, key=lambda code: category_sort_key(category, code))

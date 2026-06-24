@@ -1,2 +1,1 @@
-"""Component catalog train/test selector package."""
-
+"""Component catalog development/validation selector package."""

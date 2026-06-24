@@ -63,7 +63,8 @@ class SplitConfig:
     holdout_values: dict[str, set[str]]
     target_test_count: int
     random_seed: int | None
-    clear_existing_step_files: bool
+    clear_existing_files: bool
+    selected_data_types: set[str]
 
 
 @dataclass(frozen=True)
@@ -99,4 +100,6 @@ class CopyResult:
     test_dir: Path
     train_count: int
     test_count: int
-
+    train_file_count: int
+    test_file_count: int
+    selected_data_types: set[str]

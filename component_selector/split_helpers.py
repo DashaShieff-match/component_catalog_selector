@@ -11,7 +11,7 @@ def validate_component_count(components: list[Component]) -> None:
     if not components:
         raise ValueError("No components are available for the selected subset.")
     if len(components) < 2:
-        raise ValueError("A train/test split needs at least two selected components.")
+        raise ValueError("A development/validation split needs at least two selected components.")
 
 
 def clamped_test_count(selected_count: int, target_test_count: int) -> int:
@@ -47,11 +47,11 @@ def validate_holdout_values(category: str, available_values: set[str], test_valu
     unknown_values = test_values - available_values
     if unknown_values:
         unknown_text = format_codes(category, unknown_values)
-        raise ValueError(f"{CATEGORY_METADATA[category].title} has unknown held-out value(s): {unknown_text}.")
+        raise ValueError(f"{CATEGORY_METADATA[category].title} has unknown excluded value(s): {unknown_text}.")
     if not test_values:
-        raise ValueError(f"Select at least one held-out value for {CATEGORY_METADATA[category].title}.")
+        raise ValueError(f"Select at least one excluded value for {CATEGORY_METADATA[category].title}.")
     if test_values == available_values:
-        raise ValueError(f"Leave at least one {CATEGORY_METADATA[category].title} value available for training.")
+        raise ValueError(f"Leave at least one {CATEGORY_METADATA[category].title} value available for development.")
 
 
 def sort_components(components: Iterable[Component]) -> list[Component]:
